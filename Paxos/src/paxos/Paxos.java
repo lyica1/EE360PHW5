@@ -107,8 +107,7 @@ public class Paxos implements PaxosRMI, Runnable{
      */
     public void Start(int seq, Object value){
         // Your code here
-        Thread t = new Thread(new Paxos(me, peers, ports));
-        t.start();
+        
     }
 
     @Override

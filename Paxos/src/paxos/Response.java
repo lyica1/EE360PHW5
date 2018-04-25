@@ -9,7 +9,18 @@ import java.io.Serializable;
 public class Response implements Serializable {
     static final long serialVersionUID=2L;
     // your data here
-
+    public boolean response;
+    public int seq;
+    public int n;
+    public int n_a;
+    public Object v_a;
 
     // Your constructor and methods here
+    public Response(boolean response, int seq, int a, int n, Object v){
+        this.seq = seq;
+        this.response = response;
+        this.n = n;
+        this.n_a = a;
+        this.v_a = v;
+    }
 }

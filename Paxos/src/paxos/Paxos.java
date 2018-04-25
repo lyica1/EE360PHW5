@@ -2,7 +2,10 @@ package paxos;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 import java.rmi.registry.Registry;
+import java.security.InvalidParameterException;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -22,8 +25,10 @@ public class Paxos implements PaxosRMI, Runnable{
     AtomicBoolean unreliable;// for testing
 
     // Your data here
-
-
+    Map<Integer, retStatus> seqval;
+    Map<String, Map<Integer, Object>> thread;
+    Map<Integer, Instance> instance;
+    AtomicInteger n = new AtomicInteger(0);
     /**
      * Call the constructor to create a Paxos peer.
      * The hostnames of all the Paxos peers (including this one)
@@ -39,8 +44,9 @@ public class Paxos implements PaxosRMI, Runnable{
         this.unreliable = new AtomicBoolean(false);
 
         // Your initialization code here
-
-
+        this.seqval = new HashMap<>();
+        this.thread = new HashMap<>();
+        this.instance = new HashMap<>();
         // register peers, do not modify this part
         try{
             System.setProperty("java.rmi.server.hostname", this.peers[this.me]);
@@ -107,28 +113,122 @@ public class Paxos implements PaxosRMI, Runnable{
      */
     public void Start(int seq, Object value){
         // Your code here
-        
+        retStatus status = new retStatus(State.Pending, value);
+        seqval.put(seq, status);
+        instance.put(seq, new Instance(-1, -1, -1));
+        Thread t = new Thread(this);
+        t.start();
+        Map<Integer, Object> a = new HashMap<>();
+        a.put(seq, value);
+        thread.put(Thread.currentThread().getName(), a);
     }
-
     @Override
     public void run(){
         //Your code here
-    }
+        int count = 0;
+        int max = -1;
+        int currentn = n.incrementAndGet();
+        Map<Integer, Object> result = thread.get(Thread.currentThread().getName());
+        Set<Integer> set = result.keySet();
+        int request = set.iterator().next();
+        retStatus status = seqval.get(request);
+        Instance ins = instance.get(request);
+        Request req = new Request(request, status.v, currentn);
+        Response res;
+        Object value = status.v;
+        for(;;){
+            res = Callitself(req, "Prepare");
+            if(res.response){
+                count++;
+                if(res.n_a > max){
+                    value = res.v_a;
+                    max = res.n_a;
+                }
+            }
+            for(int i : ports) {
+                res = Call("Prepare", req, i);
+                if(res.response){
+                    count++;
+                    if(res.n_a > max){
+                        value = res.v_a;
+                        max = res.n_a;
+                    }
+                }
+            }
+            if(count >= (peers.length/2) +1){ //you got majority true
+                count = 0;
+                Request req1 = new Request(request, value, currentn);
+                res = Callitself(req1, "Accept");
+                if(res.response){
+                    count++;
+                }
+                for(int i : ports){
+                    res = Call("Accept", req1, i);
+                    if(res.response){
+                        count++;
+                    }
+                }
+                if(count >= (peers.length/2) + 1){
+                    res = Callitself(req1, "Decide");
+                    for(int i : ports){
+                        res = Call("Decide", req1, i);
+                    }
+                }
+            }
 
+        }
+
+    }
+    public Response Callitself(Request req, String name){
+        if(name.equals("Prepare")){
+            return Prepare(req);
+        }else if(name.equals("Accept")){
+            return Accept(req);
+        }else if(name.equals("Decide")){
+            return Decide(req);
+        }
+        return null;
+    }
     // RMI handler
     public Response Prepare(Request req){
+        mutex.lock();
+        int seq = req.seq;
+        Instance ins = instance.get(seq);
+        retStatus sta = seqval.get(seq);
+        Response res;
+        if(req.number > ins.n_p){
+            res = new Response(true, seq, req.number, ins.n_p, sta.v);
+            ins.n_p = req.number;
+            instance.put(seq, ins);
+        }else{
+            res = new Response(false, seq, req.number, ins.n_p, sta.v);
+        }
         // your code here
-
+        mutex.unlock();
+        return res;
     }
 
     public Response Accept(Request req){
+        mutex.lock();
+        int seq = req.seq;
+        Instance ins = instance.get(seq);
+        retStatus sta = seqval.get(seq);
+        Response res;
+        if(req.number >= ins.n_p){
+            res = new Response(true, seq, req.number, ins.n_p, sta.v);
+            ins.n_p = req.number;
+            ins.n_a = req.number;
+            ins.v_a = req.v;
+        }else{
+            res = new Response(false, seq, req.number, ins.n_p, sta.v);
+        }
         // your code here
-
+        return res;
     }
 
     public Response Decide(Request req){
         // your code here
-
+        return null;
     }
 
     /**
@@ -149,6 +249,7 @@ public class Paxos implements PaxosRMI, Runnable{
      */
     public int Max(){
         // Your code here
+        return 0;
     }
 
     /**
@@ -181,7 +282,7 @@ public class Paxos implements PaxosRMI, Runnable{
      */
     public int Min(){
         // Your code here
-
+        return 0;
     }
 
 
@@ -195,7 +296,8 @@ public class Paxos implements PaxosRMI, Runnable{
      */
     public retStatus Status(int seq){
         // Your code here
-
+        retStatus status = seqval.get(seq);
+        return status;
     }
 
     /**

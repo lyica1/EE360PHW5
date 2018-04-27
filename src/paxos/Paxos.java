@@ -25,6 +25,7 @@ public class Paxos implements PaxosRMI, Runnable{
     AtomicBoolean unreliable;// for testing
 
     // Your data here
+    State s;
     Map<Integer, retStatus> seqval;
     Map<String, Map<Integer, Object>> thread;
     Map<Integer, Instance> instance;
@@ -48,6 +49,8 @@ public class Paxos implements PaxosRMI, Runnable{
         this.seqval = new HashMap<>();
         this.thread = new HashMap<>();
         this.instance = new HashMap<>();
+        this.s = State.Pending;
+
         this.done = new HashMap<>();
         // register peers, do not modify this part
         try{
@@ -115,8 +118,8 @@ public class Paxos implements PaxosRMI, Runnable{
      */
     public void Start(int seq, Object value){
         // Your code here
-        retStatus retstatus = new retStatus(State.Pending, value);
-        seqval.put(seq, retstatus);
+        retStatus status = new retStatus(State.Pending, value);
+        seqval.put(seq, status);
         instance.put(seq, new Instance(-1, -1, -1));
         InnerPaxos temp = new InnerPaxos(seq, value);
         Thread t = new Thread(temp);
@@ -255,8 +258,10 @@ public class Paxos implements PaxosRMI, Runnable{
      */
     public retStatus Status(int seq){
         // Your code here
-        retStatus status = seqval.get(seq);
-        return status;
+        if(s == State.Pending){
+            return new retStatus(State.Pending, null);
+        }
+        return null;
     }
 
     /**
@@ -266,9 +271,9 @@ public class Paxos implements PaxosRMI, Runnable{
         public State state;
         public Object v;
 
-        public retStatus(State state, Object value){
+        public retStatus(State state, Object v){
             this.state = state;
-            this.v = value;
+            this.v = v;
         }
     }
 

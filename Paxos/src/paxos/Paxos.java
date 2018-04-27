@@ -29,6 +29,7 @@ public class Paxos implements PaxosRMI, Runnable{
     Map<String, Map<Integer, Object>> thread;
     Map<Integer, Instance> instance;
     AtomicInteger n = new AtomicInteger(0);
+    Map<Integer, Integer> done;
     /**
      * Call the constructor to create a Paxos peer.
      * The hostnames of all the Paxos peers (including this one)
@@ -47,6 +48,7 @@ public class Paxos implements PaxosRMI, Runnable{
         this.seqval = new HashMap<>();
         this.thread = new HashMap<>();
         this.instance = new HashMap<>();
+        this.done = new HashMap<>();
         // register peers, do not modify this part
         try{
             System.setProperty("java.rmi.server.hostname", this.peers[this.me]);
@@ -113,71 +115,16 @@ public class Paxos implements PaxosRMI, Runnable{
      */
     public void Start(int seq, Object value){
         // Your code here
-        retStatus status = new retStatus(State.Pending, value);
-        seqval.put(seq, status);
+        retStatus retstatus = new retStatus(State.Pending, value);
+        seqval.put(seq, retstatus);
         instance.put(seq, new Instance(-1, -1, -1));
-        Thread t = new Thread(this);
+        InnerPaxos temp = new InnerPaxos(seq, value);
+        Thread t = new Thread(temp);
         t.start();
-        Map<Integer, Object> a = new HashMap<>();
-        a.put(seq, value);
-        thread.put(Thread.currentThread().getName(), a);
     }
     @Override
     public void run(){
         //Your code here
-        int count = 0;
-        int max = -1;
-        int currentn = n.incrementAndGet();
-        Map<Integer, Object> result = thread.get(Thread.currentThread().getName());
-        Set<Integer> set = result.keySet();
-        int request = set.iterator().next();
-        retStatus status = seqval.get(request);
-        Instance ins = instance.get(request);
-        Request req = new Request(request, status.v, currentn);
-        Response res;
-        Object value = status.v;
-        for(;;){
-            res = Callitself(req, "Prepare");
-            if(res.response){
-                count++;
-                if(res.n_a > max){
-                    value = res.v_a;
-                    max = res.n_a;
-                }
-            }
-            for(int i : ports) {
-                res = Call("Prepare", req, i);
-                if(res.response){
-                    count++;
-                    if(res.n_a > max){
-                        value = res.v_a;
-                        max = res.n_a;
-                    }
-                }
-            }
-            if(count >= (peers.length/2) +1){ //you got majority true
-                count = 0;
-                Request req1 = new Request(request, value, currentn);
-                res = Callitself(req1, "Accept");
-                if(res.response){
-                    count++;
-                }
-                for(int i : ports){
-                    res = Call("Accept", req1, i);
-                    if(res.response){
-                        count++;
-                    }
-                }
-                if(count >= (peers.length/2) + 1){
-                    res = Callitself(req1, "Decide");
-                    for(int i : ports){
-                        res = Call("Decide", req1, i);
-                    }
-                }
-            }
-
-        }
-
     }
     public Response Callitself(Request req, String name){
         if(name.equals("Prepare")){
@@ -227,6 +174,15 @@ public class Paxos implements PaxosRMI, Runnable{
     }
 
     public Response Decide(Request req){
+        mutex.lock();
+        int seq = req.seq;
+        retStatus changestate = seqval.get(seq);
+        if(changestate.state == State.Decided){
+
+        }
+        changestate.state = State.Decided;
+        seqval.put(seq, changestate);
+        mutex.unlock();
         // your code here
         return null;
     }
@@ -239,6 +195,9 @@ public class Paxos implements PaxosRMI, Runnable{
      */
     public void Done(int seq) {
         // Your code here
+        mutex.lock();
+        done.put(me, seq);
+        mutex.unlock();
     }
 
 
@@ -307,9 +266,9 @@ public class Paxos implements PaxosRMI, Runnable{
         public State state;
         public Object v;
 
-        public retStatus(State state, Object v){
+        public retStatus(State state, Object value){
             this.state = state;
-            this.v = v;
+            this.v = value;
         }
     }
 
@@ -340,6 +299,66 @@ public class Paxos implements PaxosRMI, Runnable{
     public boolean isunreliable(){
         return this.unreliable.get();
     }
+    public class InnerPaxos implements Runnable{
+        public int seq;
+        public Object value;
 
+        public InnerPaxos(int seq, Object value){
+            this.seq = seq;
+            this.value = value;
+        }
+        @Override
+        public void run(){
+            int count = 0;
+            int max = -1;
+            int currentn = n.incrementAndGet();
+            int request = this.seq;
+            retStatus status = seqval.get(request);
+            Instance ins = instance.get(request);
+            Request req = new Request(request, status.v, currentn);
+            Response res;
+            Object value = status.v;
+            for(;;){
+                res = Callitself(req, "Prepare");
+                if(res.response){
+                    count++;
+                    if(res.n_a > max){
+                        value = res.v_a;
+                        max = res.n_a;
+                    }
+                }
+                for(int i : ports) {
+                    res = Call("Prepare", req, i);
+                    if(res.response){
+                        count++;
+                        if(res.n_a > max){
+                            value = res.v_a;
+                            max = res.n_a;
+                        }
+                    }
+                }
+                if(count >= (peers.length/2) +1){ //you got majority true
+                    count = 0;
+                    Request req1 = new Request(request, value, currentn);
+                    res = Callitself(req1, "Accept");
+                    if(res.response){
+                        count++;
+                    }
+                    for(int i : ports){
+                        res = Call("Accept", req1, i);
+                        if(res.response){
+                            count++;
+                        }
+                    }
+                    if(count >= (peers.length/2) + 1){
+                        res = Callitself(req1, "Decide");
+                        for(int i : ports){
+                            res = Call("Decide", req1, i);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
 }

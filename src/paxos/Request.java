@@ -11,20 +11,19 @@ public class Request implements Serializable {
     static final long serialVersionUID=1L;
     // Your data here
     public int seq;
+    public int n;
     public Object v;
-    public int number;
+    int done = -1;
+    int me = -1;
 
-    // Your constructor and methods here
-    public Request(int seq, Object v, int number){
+    public Request(int seq, int n, Object v){
         this.seq = seq;
+        this.n = n;
         this.v = v;
-        this.number = number;
-    }
-    public int getReq(){
-        return seq;
     }
 
-    public Object getV() {
-        return v;
+    @Override
+    public String toString() {
+        return "Req Seq:" + seq + " n:" + n + " v:" + v;
     }
 }

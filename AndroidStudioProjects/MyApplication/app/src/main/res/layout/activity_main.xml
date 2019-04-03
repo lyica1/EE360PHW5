@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/weather2"
+    tools:context="com.example.yongsub.myapplication.MainActivity">
+
+    <TextView
+        android:id="@+id/Temperature"
+        android:layout_width="190dp"
+        android:layout_height="89dp"
+        android:textColor="#ffffff"
+        android:layout_marginRight="30dp"
+        android:textSize="60sp" />
+
+    <TextView
+        android:id="@+id/Humidity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@+id/Temperature"
+        android:layout_toRightOf="@+id/Temperature"
+        android:textStyle="bold"
+        android:layout_marginRight="10dp"
+        android:text="Humidity:" />
+
+    <TextView
+        android:id="@+id/Humidityresult"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@+id/WindSpeed"
+        android:layout_toRightOf="@+id/WindSpeed" />
+
+    <TextView
+        android:id="@+id/WindSpeed"
+        android:textStyle="bold"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/Humidity"
+        android:layout_toEndOf="@+id/Temperature"
+        android:layout_toRightOf="@+id/Temperature"
+        android:layout_marginRight="10dp"
+        android:text="WindSpeed:" />
+
+    <TextView
+        android:id="@+id/WindSpeedresult"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/Humidity"
+        android:layout_toEndOf="@+id/WindSpeed"
+        android:layout_toRightOf="@+id/WindSpeed" />
+
+    <TextView
+        android:id="@+id/Precipitationresult"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/Precipitation"
+        android:layout_alignBottom="@+id/Precipitation"
+        android:layout_toEndOf="@+id/Precipitation"
+        android:layout_toRightOf="@+id/Precipitation" />
+
+    <TextView
+        android:id="@+id/Precipitation"
+        android:layout_width="wrap_content"
+        android:textStyle="bold"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/Temperature"
+        android:layout_alignBottom="@+id/Temperature"
+        android:layout_toEndOf="@+id/Temperature"
+        android:layout_toRightOf="@+id/Temperature"
+        android:layout_marginRight="10dp"
+        android:text="Precipitation:  " />
+
+
+    <TextView
+        android:id="@+id/textView20"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/Temperature"
+        android:layout_marginTop="92dp"
+        android:textStyle="bold"
+        android:textSize="18dp"
+        android:text=" Average Temp for Next 48 Hours   " />
+
+    <TextView
+        android:id="@+id/average"
+        android:layout_width="100dp"
+        android:layout_height="40dp"
+        android:layout_alignBaseline="@+id/textView20"
+        android:layout_alignBottom="@+id/textView20"
+        android:layout_toEndOf="@+id/textView20"
+        android:textSize="20sp"
+        android:layout_toRightOf="@+id/textView20" />
+
+    <TextView
+        android:id="@+id/textView30"
+        android:textStyle="bold"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/Temperature"
+        android:layout_marginTop="16dp"
+        android:text=" 1Hour          2Hours           3Hours          4Hours            5Hours" />
+
+    <TextView
+        android:id="@+id/hourtemperature"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/average"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/textView30" />
+
+    <TextView
+        android:id="@+id/textView32"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:textStyle="bold"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
+        android:text=" 1Day      2Days       3Days       4Days      5Days      6Days     7Days" />
+
+    <TextView
+        android:id="@+id/high"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/textView32" />
+
+    <TextView
+        android:id="@+id/low"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/high" />
+
+    <Button
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/convert"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="37dp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:text="Get" />
+
+    <EditText
+        android:id="@+id/convert"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/low"
+        android:layout_marginTop="14dp"
+        android:hint="@string/e.g" />
+
+
+</RelativeLayout>
